@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "Web application for receiving exchange rates"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "aiofiles>=24.1.0",
+    "aiohttp>=3.12.15",
+]
 
 [dependency-groups]
 dev = [
