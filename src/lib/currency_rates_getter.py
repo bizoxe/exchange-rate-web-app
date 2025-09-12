@@ -14,7 +14,6 @@ from aiohttp import (
 from src.config import get_settings
 from src.lib.cache_storage import storage_getter
 from src.lib.coders import (
-    encoder,
     json_decoder_decimal,
 )
 from src.lib.types import CurrencyInfo
@@ -53,11 +52,8 @@ class CurrencyRatesGetter:
     ) -> str:
         return self._key_template.format(for_date=for_date.isoformat(), currency=currency)
 
-    async def request_currency_info(self) -> dict[str, Any]:
-        url = settings.api.CURRENCY_API_WITH_DATE_URL.format(
-            date=self.selected_date,
-            currency=self.currency,
-        )
+    @classmethod
+    async def request_currency_info(cls, url: str) -> dict[str, Any]:
         async with ClientSession() as session:
             async with session.get(url) as response:
                 if response.status == SUCCESS_STATUS_CODE:
@@ -67,13 +63,15 @@ class CurrencyRatesGetter:
                     return result
                 message = "No results were found for your request"
                 raise web.HTTPNotFound(
-                    body=encoder.encode({"message": message}),
                     reason=message,
-                    content_type="application/json",
                 )
 
     async def read_currency_info_for_date(self) -> CurrencyInfo:
-        response_data = await self.request_currency_info()
+        url = settings.api.CURRENCY_API_WITH_DATE_URL.format(
+            date=self.selected_date,
+            currency=self.currency,
+        )
+        response_data = await self.request_currency_info(url=url)
         data: ResponseType = {
             "date": response_data["date"],
             "values": response_data[self.currency],
