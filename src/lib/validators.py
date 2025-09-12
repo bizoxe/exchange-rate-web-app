@@ -2,7 +2,6 @@ import datetime
 
 from aiohttp import web
 
-from src.lib.coders import encoder
 from src.lib.currency_check_exists import check_currency
 
 
@@ -11,9 +10,7 @@ async def validate_currency(currency: str) -> str:
         return currency
     message = f"Unknown {currency!r} currency, try another one."
     raise web.HTTPBadRequest(
-        body=encoder.encode({"message": message}),
         reason=message,
-        content_type="application/json",
     )
 
 
@@ -25,9 +22,7 @@ def validate_provided_date(provided_date: str | None) -> datetime.date:
         except ValueError as exc:
             message = "The date specified must be in ISO format"
             raise web.HTTPUnprocessableEntity(
-                body=encoder.encode({"message": message}),
                 reason=message,
-                content_type="application/json",
             ) from exc
     return selected_date
 
