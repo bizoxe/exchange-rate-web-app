@@ -10,6 +10,7 @@ from typing import Final
 from redis.asyncio import Redis
 
 BASE_DIR: Final[Path] = Path(__file__).resolve().parent
+ENV_FILE_DEFAULT = BASE_DIR / ".env"
 
 
 @dataclass
@@ -23,12 +24,22 @@ class ApplicationConfig:
         "usd",
         "pln",
     )
-    CACHE_DIR: Path = field(default=BASE_DIR.joinpath("currencies-cache"))
-    CURRENCIES_API_LIST_URL: str = "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies.json"
-    CURRENCY_API_WITH_DATE_URL: str = (
-        "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@{date}/v1/currencies/{currency}.json"
+    CACHE_DIR: Path = field(
+        default_factory=lambda: Path(os.getenv("CACHE_DIR", f"{BASE_DIR.joinpath('currencies-cache')}"))
     )
-    DEFAULT_LOG_FORMAT = "[%(asctime)s.%(msecs)03d] %(module)s:%(lineno)d %(levelname)s - %(message)s"
+    CURRENCIES_API_LIST_URL: str = field(
+        default_factory=lambda: os.getenv(
+            "CURRENCIES_API_LIST_URL",
+            "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies.json",
+        )
+    )
+    CURRENCY_API_WITH_DATE_URL: str = field(
+        default_factory=lambda: os.getenv(
+            "CURRENCY_API_WITH_DATE_URL",
+            "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@{date}/v1/currencies/{currency}.json",
+        )
+    )
+    DEFAULT_LOG_FORMAT: str = "[%(asctime)s.%(msecs)03d] %(module)s:%(lineno)d %(levelname)s - %(message)s"
     STORAGE_TYPE: str = field(default_factory=lambda: os.getenv("STORAGE_TYPE", "redis"))
 
     @property
@@ -75,7 +86,16 @@ class Settings:
     api: ApplicationConfig = field(default_factory=ApplicationConfig)
     redis: RedisConfig = field(default_factory=RedisConfig)
 
+    @classmethod
+    def from_env(cls, env_file: Path = ENV_FILE_DEFAULT) -> "Settings":
+        if env_file.is_file():
+            from dotenv import load_dotenv  # noqa: PLC0415
+
+            load_dotenv(env_file, override=True)
+
+        return Settings()
+
 
 @lru_cache(maxsize=1, typed=True)
 def get_settings() -> Settings:
-    return Settings()
+    return Settings.from_env()
