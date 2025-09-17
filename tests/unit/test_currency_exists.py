@@ -5,9 +5,9 @@ from unittest.mock import (
 )
 
 from src.lib.currency_check_exists import CheckCurrencyExists
+from tests.data import DataHelper
 
-from tests.data import data_helper
-
+data_helper = DataHelper.get_helper()
 AVAILABLE_CURRENCIES = data_helper.available_currencies
 
 

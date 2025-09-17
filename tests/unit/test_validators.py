@@ -10,14 +10,16 @@ from aiohttp.web_exceptions import (
     HTTPBadRequest,
     HTTPUnprocessableEntity,
 )
-from src.lib import validators
 
-from tests.data import data_helper
+from src.lib import validators
+from tests.data import DataHelper
+
+data_helper = DataHelper.get_helper()
 
 AVAILABLE_CURRENCIES = data_helper.available_currencies
 
-class TestCurrencyValidators(IsolatedAsyncioTestCase):
 
+class TestCurrencyValidators(IsolatedAsyncioTestCase):
     @patch("src.lib.currency_check_exists.CheckCurrencyExists.is_currency_exists")
     async def test_validate_currency(self, currency_exists: AsyncMock) -> None:
         currency = "usd"
@@ -38,11 +40,7 @@ class TestCurrencyValidators(IsolatedAsyncioTestCase):
         res = validators.validate_provided_date(provided_date=date_iso_format)
         self.assertEqual(res, current_date)
 
-        date_iso_formats = [
-            "2020-1-11",
-            "20-11-12",
-            "2025-05-1"
-        ]
+        date_iso_formats = ["2020-1-11", "20-11-12", "2025-05-1"]
         for date in date_iso_formats:
             with self.subTest(date=date):
                 with self.assertRaises(HTTPUnprocessableEntity) as context:
