@@ -1,0 +1,5 @@
+[run]
+omit =
+    tests/*
+    src/app.py
+    src/config.py
