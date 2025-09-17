@@ -66,10 +66,10 @@ class FileStorage(CacheStorage):
 class RedisStorage(CacheStorage):
     def __init__(
         self,
-        redis_client: Redis = settings.redis.client,
+        redis_client: Redis | None = None,
         expire: int = settings.redis.KEY_EXPIRE_SECONDS,
     ) -> None:
-        self._redis_client = redis_client
+        self._redis_client = redis_client or settings.redis.client
         self._expire = expire
 
     async def cache_currency_info(self, info: CurrencyInfo, key: str) -> bytes:
