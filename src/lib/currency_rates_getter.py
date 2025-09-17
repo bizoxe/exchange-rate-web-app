@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime
 from typing import (
     TYPE_CHECKING,
-    Any,
+    cast,
 )
 
 from aiohttp import (
@@ -20,9 +20,10 @@ from src.lib.types import CurrencyInfo
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
+    from decimal import Decimal
 
     from src.lib.cache_storage import CacheStorage
-    from src.lib.types import ResponseType
+    from src.lib.types import ResponseCurrency, ResponseType
 
 
 settings = get_settings()
@@ -53,11 +54,11 @@ class CurrencyRatesGetter:
         return self._key_template.format(for_date=for_date.isoformat(), currency=currency)
 
     @classmethod
-    async def request_currency_info(cls, url: str) -> dict[str, Any]:
+    async def request_currency_info(cls, url: str) -> ResponseCurrency:
         async with ClientSession() as session:
             async with session.get(url) as response:
                 if response.status == SUCCESS_STATUS_CODE:
-                    result: dict[str, Any] = await response.json(
+                    result: ResponseCurrency = await response.json(
                         loads=json_decoder_decimal.decode,
                     )
                     return result
@@ -73,8 +74,8 @@ class CurrencyRatesGetter:
         )
         response_data = await self.request_currency_info(url=url)
         data: ResponseType = {
-            "date": response_data["date"],
-            "values": response_data[self.currency],
+            "date": cast("str", response_data["date"]),
+            "values": cast("dict[str, int | Decimal]", response_data[self.currency]),
         }
         return CurrencyInfo.get_currency_info_response(
             info=data,

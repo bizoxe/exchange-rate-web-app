@@ -8,6 +8,9 @@ class ResponseType(TypedDict):
     date: str
     values: dict[str, Decimal | int]
 
+InnerRates = dict[str, int | Decimal]
+ResponseCurrency = dict[str, str | InnerRates]
+
 
 @dataclass(frozen=True)
 class CurrencyValue:
