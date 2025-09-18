@@ -1,3 +1,6 @@
+Status of Last Deployment:<br>
+<img src="https://github.com/bizoxe/exchange-rate-web-app/actions/workflows/ci.yaml/badge.svg?branch=master"><br>
+
 # 💱 Exchange Rate Web Application
 
 A practical assignment for the **Python Advanced** course.
