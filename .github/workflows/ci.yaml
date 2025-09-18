@@ -1,0 +1,70 @@
+name: Tests-and-Linting
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  lint-typecheck:
+    name: Lint and Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Sync all dependencies
+        run: uv sync --all-groups
+
+      - name: Run ruff
+        run: uv run ruff check --no-cache src --output-format=github
+
+      - name: Run mypy
+        run: uv run mypy src --no-incremental
+
+  test:
+    name: Run Tests on Multiple Python Versions
+    needs: lint-typecheck
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Sync all dependencies
+        run: uv sync --all-groups
+
+      - name: Run tests (unittest with coverage via pytest)
+        run: |
+          uv run --with pytest --with pytest-subtests --with pytest-cov \
+            pytest --cov=src --cov-report=xml
+
+      - name: Upload coverage report
+        if: ${{ matrix.python-version == '3.13' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
